@@ -70,7 +70,7 @@ $product = $records[0];
 
 				<div class="topbar-child2">
 					<span class="topbar-email">
-						fashe@example.com
+						care@kidsuperstore.in
 					</span>
 
 					<div class="topbar-language rs1-select2">
@@ -85,7 +85,7 @@ $product = $records[0];
 			<div class="wrap_header">
 				<!-- Logo -->
 				<a href="index.html" class="logo">
-					<img src="images/icons/logo.png" alt="IMG-LOGO">
+					<img src="images/icons/ksslogo.png" alt="IMG-LOGO">
 				</a>
 
 				<!-- Menu -->
@@ -334,7 +334,7 @@ $product = $records[0];
 					<li class="item-topbar-mobile p-l-20 p-t-8 p-b-8">
 						<div class="topbar-child2-mobile">
 							<span class="topbar-email">
-								fashe@example.com
+								care@kidsuperstore.in
 							</span>
 
 							<div class="topbar-language rs1-select2">
@@ -874,7 +874,7 @@ $product = $records[0];
 
 				<div>
 					<p class="s-text7 w-size27">
-						Any questions? Let us know in store at 8th floor, 379 Hudson St, New York, NY 10018 or call us on (+1) 96 716 6879
+						Any questions? Let us know in store at address or call us on (+91) number
 					</p>
 
 					<div class="flex-m p-t-30">
