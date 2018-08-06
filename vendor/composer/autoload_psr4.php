@@ -7,5 +7,4 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Ripcord\\' => array($vendorDir . '/darkaonline/ripcord/src/Ripcord'),
-    'PhpXmlRpc\\' => array($vendorDir . '/phpxmlrpc/phpxmlrpc/src'),
 );
