@@ -1,6 +1,7 @@
 {
     "name": "ajency/odootrialxmlrpc",
     "require": {
-        "darkaonline/ripcord": "^0.1.6"
+        "darkaonline/ripcord": "^0.1.6",
+        "elasticsearch/elasticsearch": "^6.0"
     }
 }

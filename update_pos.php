@@ -2,17 +2,16 @@
 require_once __DIR__.'/vendor/autoload.php';
 require_once('config.php');
 use Ripcord\Ripcord;
+use Elasticsearch\ClientBuilder;
 
-
+$client = ClientBuilder::create()->build();
 
 $common = ripcord::client("$url/xmlrpc/2/common");
-
 $uid = $common->authenticate($db, $username, $password, array());
 $models = ripcord::client("$url/xmlrpc/2/object");
 
 
-$limit = 10;
-$offset = 15;
+$limit = 100;
 $sort = "id";
 
 
@@ -20,19 +19,23 @@ $sort = "id";
 <pre>
 <?php
 
-$conn = new mysqli("localhost","root", "root", "store");
+$params = [
+    'index' => 'orders',
+    'body' => [
+        'aggs' => [
+            'max_id' => [ 
+            	'max' => [
+            		'field' => 'order_id'],
+            	],
 
-$sql = "SELECT max(id) as id from pos_orders";
-$result = $conn->query($sql);
-if ( $row = $result->fetch_assoc()) {
-    $first_id = (int)$row["id"];
+        ]
+    ]
+];
 
-} else {
-    echo "Error: " . $sql . "<br>" . $conn->error;
-    die();
-}
+$response = $client->search($params);
+$first_id = (int) $response['aggregations']['max_id']['value'];
 print_r($first_id);
-$first_id = 0;
+
 
 $fields = [
 	'amount_total',
@@ -41,35 +44,50 @@ $fields = [
 	'partner_id',
 	'date_order'
 ];
+$i = 0;
 do{
 	$order_ids = $models->execute_kw($db, $uid, $password, 'pos.order', 'search_read', array(array(["id" ,">" ,$first_id])),
 	array('fields'=> $fields, 'limit'=> $limit, 'order' => $sort));
 
-	print_r($order_ids);
 
-	foreach ($order_ids as $key => $value) {
-		print_r($value);
-		$json = mysqli_real_escape_string($conn,json_encode($value['lines']));
-		$sql = "INSERT into pos_orders VALUES({$value["id"]}, {$value["amount_total"]},\"{$json}\", \"{$value['date_order']}\")";	
-		// print_r($result);
-		if ($conn->query($sql) === TRUE) {
-			$first_id=$value['id'];
-	    	echo "New record created successfully";
-		} else {
-		    echo "Error: " . $sql . "<br>" . $conn->error;
-		    die();
-		}
+	foreach ($order_ids as $key => $order) {
 		
-		if(!empty($value['lines'])){
-			$order_lines = $models->execute_kw($db, $uid, $password, 'pos.order.line', 'read', array($value['lines']));
-			// print_r($order_lines);
+
+		$total_qty = 0;
+		if(!empty($order['lines'])){
+			$order_lines = $models->execute_kw($db, $uid, $password, 'pos.order.line', 'read', array($order['lines']));
+
 			foreach ($order_lines as $key => $value) {
-				// echo $value['id']. " ".$value['display_name'];
-				$sql = "INSERT into pos_orderlines VALUES( {$value["id"]}, \"{$value["display_name"]}\")";	
-				$conn->query($sql);
+				$total_qty += $value["qty"];
 			}
-			// die();
+
 		}
+
+		$body = [
+			"order_id" => $order["id"],
+			"order_number" => "POS/ST/100003", 
+			"order_date" => $order['date_order'], 
+			"store_type" => "pos",
+			"store_name" => $order['store_id'][1],
+			"store_id"=> $order['store_id'][0], 
+			"customer_id"=> $order['partner_id'][0], 
+			"customer_name" => $order['partner_id'][1], 
+			"total_amount" => $order["amount_total"],
+			"sku_count" => count($order['lines']),
+			"total_qty" => $total_qty,
+			"suborders_count" => count($order['lines']),
+
+		];
+		$params = [
+		    'index' => 'orders',
+		    'type' => '_doc',
+		    'body' => $body,
+		];
+		$response = $client->index($params);
+		$i++;
+		print_r($i);
+		print_r($response);
+		$first_id=$order['id'];
 	}
 }while(count($order_ids) == $limit);
 
